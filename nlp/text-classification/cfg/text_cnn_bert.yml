@@ -1,4 +1,4 @@
-name: text_cnn
+name: text_cnn_bert
 embedding:
   type: bert
   name: bert-base-cased
@@ -10,7 +10,7 @@ dataset:
   name: imdb
   path: ./data/aclImdb
 train:
-  accelerator: cpu
+  accelerator: gpu
   accelerator_devices: 1
   epochs: 20
   num_workers: 8
@@ -18,7 +18,7 @@ train:
   dev_batch_size: 128
   test_batch_size: 128
   optimizer:
-    lr: 5e-3
+    lr: 1e-5
 model:
   dropout: 0.5
   num_filters: 256

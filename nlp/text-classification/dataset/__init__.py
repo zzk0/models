@@ -27,7 +27,7 @@ class TextClassificationDataModule(pl.LightningDataModule):
         return DataLoader(self.train_set, self.cfg.train.train_batch_size, shuffle=True, num_workers=self.cfg.train.num_workers, persistent_workers=True)
 
     def val_dataloader(self) -> DataLoader:
-        return DataLoader(self.dev_set, self.cfg.train.dev_batch_size, shuffle=True, num_workers=self.cfg.train.num_workers, persistent_workers=True)
+        return DataLoader(self.dev_set, self.cfg.train.dev_batch_size, shuffle=False, num_workers=self.cfg.train.num_workers, persistent_workers=True)
 
     def test_dataloader(self) -> DataLoader:
         return DataLoader(self.test_set, self.cfg.train.test_batch_size, shuffle=False, num_workers=self.cfg.train.num_workers, persistent_workers=True)
