@@ -1,0 +1,7 @@
+data/
+__pycache__
+aclImdb_v1.tar.gz
+lightning_logs/
+logs/
+MNIST/
+pretrained/
