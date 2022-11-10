@@ -24,6 +24,25 @@ class TextCNN(pl.LightningModule):
 		self.fc = nn.Linear(self.cfg.model.num_filters * len(self.cfg.model.filter_sizes), self.cfg.model.num_classes)
 		self.valid_accuracy = torchmetrics.Accuracy()
 
+		self.best_accuracy = 0.0
+
+	def hypermeters(self):
+		parameters = ''
+		if self.cfg.embedding.type in ('bert'):
+			parameters += 'embedding_model={}, '.format(self.cfg.embedding.name)
+		else:
+			parameters += 'embedding_dimension={}, '.format(self.cfg.embedding.dimension)
+		parameters += 'num_filters={}, '.format(self.cfg.model.num_filters)
+		parameters += 'filter_sizes={}, '.format(self.cfg.model.filter_sizes)
+		parameters += 'dropout={}, '.format(self.cfg.model.dropout)
+		parameters += 'num_classes={}'.format(self.cfg.model.num_classes)
+		return parameters
+
+	def metrics(self):
+		indicators = ''
+		indicators += 'acc={}'.format(self.best_accuracy)
+		return indicators
+
 	def uniform_log(self, *args):
 		if self.cfg.train.accelerator_devices > 1:
 			self.log(*args, sync_dist=True)
@@ -67,5 +86,6 @@ class TextCNN(pl.LightningModule):
 		self.uniform_log('val_loss', loss)
 
 	def validation_epoch_end(self, validation_step_outputs):
+		self.best_accuracy = max(self.best_accuracy, self.valid_accuracy.compute())
 		self.uniform_log('val_acc', self.valid_accuracy.compute())
 		self.valid_accuracy.reset()

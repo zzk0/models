@@ -4,6 +4,7 @@ from omegaconf import OmegaConf
 
 from model import TextCNN
 from dataset import TextClassificationDataModule, ImdbDataset
+from database import MLDatabase
 
 
 def parse_args(): 
@@ -17,6 +18,17 @@ def get_model(cfg):
     if cfg.name == 'text_cnn':
         return TextCNN(cfg)
     return TextCNN(cfg)
+
+
+def write_sqlite(cfg, hypermeters, metrics, best_accuracy):
+    database = MLDatabase(cfg.sqlite_path)
+    database.insert_experiment_result({
+        'model': cfg.name,
+        'hypermeters': hypermeters,
+        'metrics': metrics,
+        'accuracy': best_accuracy
+    })
+    database.close()
 
 
 def main():
@@ -43,6 +55,8 @@ def main():
         max_epochs=cfg.train.epochs
     )
     trainer.fit(model, data_module)
+
+    write_sqlite(cfg, model.hypermeters(), model.metrics(), model.best_accuracy.item())
 
 
 if __name__ == '__main__':
