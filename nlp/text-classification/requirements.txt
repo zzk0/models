@@ -1,4 +1,4 @@
-torch==1.13.0
+torch
 pytorch-lightning==1.8.0.post1
 omegaconf==2.2.3
 transformers==4.24.0

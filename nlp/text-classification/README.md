@@ -5,14 +5,21 @@
 1. Add Job Scheduler to help run jobs
 2. Add more datasets and more models
 
-## Pretrained Models
+## Docker
 
-you can download the pretrained models from hugggingface.co manually or use transformers to download automatically.
+You can install the requirements.txt. If you want to reproduce the result, we recommend use docker.
 
 ```
-bert: https://huggingface.co/bert-base-cased/tree/main
-roberta: https://huggingface.co/roberta-base/tree/main
-deberta: https://huggingface.co/microsoft/deberta-v3-base/tree/main
+curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun  # install docker
+nvidia-smi  # find out the lastest cuda version the driver supported
+# find the correspond docker image here: https://hub.docker.com/r/nvidia/cuda/
+docker pull nvidia/cuda:11.1.1-cudnn8-runtime-ubuntu18.04
+docker run -it --runtime=nvidia --network=host -v $(pwd):$(pwd) -w $(pwd) --shm-size=2g nvidia/cuda:11.1.1-cudnn8-runtime-ubuntu18.04 bash
+sed -i 's/security.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list
+sed -i 's/archive.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list
+apt update && apt install -y python3 python3-pip --fix-missing
+pip3 install -r requirements.txt  -i https://pypi.tuna.tsinghua.edu.cn/simple
+python3 main.py -c ./cfg/text_cnn.yml
 ```
 
 ## dataset
@@ -26,6 +33,61 @@ cd data
 wget https://ai.stanford.edu/~amaas/data/sentiment/aclImdb_v1.tar.gz
 tar -xvf aclImdb_v1.tar.gz
 ```
+
+the downloaded dataset should be put in the directory called `data`
+
+```
+data
+├── aclImdb
+│   ├── imdbEr.txt
+│   ├── imdb.vocab
+│   ├── README
+│   ├── test
+│   └── train
+└── aclImdb_v1.tar.gz
+```
+
+## Pretrained Models
+
+you can download the pretrained models from hugggingface.co manually or use transformers to download automatically by turning off `use_local` in .yml configuration files.
+
+```
+bert: https://huggingface.co/bert-base-cased/tree/main
+roberta: https://huggingface.co/roberta-base/tree/main
+deberta: https://huggingface.co/microsoft/deberta-v3-base/tree/main
+```
+
+the pretrained models should be put in the directory called `pretrained`
+
+```
+$ tree pretrained/
+pretrained/
+├── bert-base-cased
+│   ├── config.json
+│   ├── gitattributes.txt
+│   ├── pytorch_model.bin
+│   ├── README.md
+│   ├── tokenizer_config.json
+│   ├── tokenizer.json
+│   └── vocab.txt
+├── deberta-v3-base
+│   ├── config.json
+│   ├── gitattributes.txt
+│   ├── pytorch_model.bin
+│   ├── README.md
+│   ├── spm.model
+│   └── tokenizer_config.json
+└── roberta-base
+    ├── config.json
+    ├── dict.txt
+    ├── gitattributes.txt
+    ├── merges.txt
+    ├── pytorch_model.bin
+    ├── README.md
+    ├── tokenizer.json
+    └── vocab.json
+```
+
 
 ## tensorboard
 
@@ -57,3 +119,4 @@ We use sqlite3 to store expriment results, you can start the sqlite-web to see t
 ```
 sqlite_web ./database/ml.db
 ```
+

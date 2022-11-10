@@ -2,28 +2,34 @@ import argparse
 import pytorch_lightning as pl
 from omegaconf import OmegaConf
 
-from model import TextCNN
+from model import TextCNN, TextRNN, TextRCNN
 from dataset import TextClassificationDataModule, ImdbDataset
 from database import MLDatabase
 
 
 def parse_args(): 
     args = argparse.ArgumentParser()
-    args.add_argument('-c', '--cfg', type=str, default='./cfg/text_cnn.yml')
+    args.add_argument('-c', '--cfg', type=str, default='./cfg/text_rcnn.yml')
     args.add_argument('-m', '--mode', type=str, default='train')
     return args.parse_args()
 
 
 def get_model(cfg):
-    if cfg.name == 'text_cnn':
+    if cfg.name.startswith('text_cnn'):
         return TextCNN(cfg)
-    return TextCNN(cfg)
+    elif cfg.name.startswith('text_rnn'):
+        return TextRNN(cfg)
+    elif cfg.name.startswith('text_rcnn'):
+        return TextRCNN(cfg)
+    else:
+        raise NotImplemented
 
 
 def write_sqlite(cfg, hypermeters, metrics, best_accuracy):
     database = MLDatabase(cfg.sqlite_path)
     database.insert_experiment_result({
         'model': cfg.name,
+        'dataset': cfg.dataset.name,
         'hypermeters': hypermeters,
         'metrics': metrics,
         'accuracy': best_accuracy
@@ -56,7 +62,7 @@ def main():
     )
     trainer.fit(model, data_module)
 
-    write_sqlite(cfg, model.hypermeters(), model.metrics(), model.best_accuracy.item())
+    write_sqlite(cfg, model.hypermeters(), model.metrics(), model.best_accuracy)
 
 
 if __name__ == '__main__':
