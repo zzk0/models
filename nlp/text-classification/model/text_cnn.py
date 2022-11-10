@@ -1,4 +1,5 @@
 import torch
+import torchmetrics
 from torch import nn
 from torch.nn import functional as F
 import pytorch_lightning as pl
@@ -21,6 +22,7 @@ class TextCNN(pl.LightningModule):
 		)
 		self.dropout = nn.Dropout(self.cfg.model.dropout)
 		self.fc = nn.Linear(self.cfg.model.num_filters * len(self.cfg.model.filter_sizes), self.cfg.model.num_classes)
+		self.valid_accuracy = torchmetrics.Accuracy()
 
 	def uniform_log(self, *args):
 		if self.cfg.train.accelerator_devices > 1:
@@ -44,7 +46,7 @@ class TextCNN(pl.LightningModule):
 		return out
 
 	def configure_optimizers(self):
-		optimizer = torch.optim.Adam(self.parameters(), lr=self.cfg.train.optimizer.lr)
+		optimizer = torch.optim.Adam(self.parameters(), lr=self.cfg.optimizer.lr)
 		return optimizer
 
 	def training_step(self, train_batch, batch_idx):
@@ -60,21 +62,10 @@ class TextCNN(pl.LightningModule):
 		y = val_batch['labels']
 		out = self.forward(x)
 		loss = F.cross_entropy(out, y)
-
-		preds = out.argmax(dim=-1)
-		corr = torch.sum(preds == y)
-
+		out = torch.argmax(out, 1)
+		self.valid_accuracy.update(out, y)
 		self.uniform_log('val_loss', loss)
-		return {
-			'size': len(y),
-			'corr': corr.item()
-		}
 
 	def validation_epoch_end(self, validation_step_outputs):
-		corr = 0
-		total = 0
-		for output in validation_step_outputs:
-			corr += output['corr']
-			total += output['size']
-		self.uniform_log('val_acc', corr / total)
-
+		self.uniform_log('val_acc', self.valid_accuracy.compute())
+		self.valid_accuracy.reset()

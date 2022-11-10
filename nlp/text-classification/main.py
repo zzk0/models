@@ -39,6 +39,7 @@ def main():
         accelerator=cfg.train.accelerator,
         devices=cfg.train.accelerator_devices,
         logger=pl.loggers.TensorBoardLogger(cfg.log_path, cfg.name),
+        log_every_n_steps=cfg.log_every_n_steps,
         max_epochs=cfg.train.epochs
     )
     trainer.fit(model, data_module)

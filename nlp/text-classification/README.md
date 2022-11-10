@@ -5,7 +5,9 @@
 you can download the pretrained models from hugggingface.co manually or use transformers to download automatically.
 
 ```
-https://huggingface.co/bert-base-cased/tree/main
+bert: https://huggingface.co/bert-base-cased/tree/main
+roberta: https://huggingface.co/roberta-base/tree/main
+deberta: 
 ```
 
 ## dataset
