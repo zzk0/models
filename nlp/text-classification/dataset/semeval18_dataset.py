@@ -31,14 +31,15 @@ class SemEval18Dataset(Dataset):
         super().__init__()
         self.cfg = cfg
         self.max_length = self.cfg.max_seq_len
+        gold = '-gold' if dataset_type == 'test' else ''
         if self.cfg.dataset.lang == 'english':
-            self.filename = os.path.join(self.cfg.dataset.path, "2018-E-c-En-{}.txt".format(dataset_type))
+            self.filename = os.path.join(self.cfg.dataset.path, "2018-E-c-En-{}{}.txt".format(dataset_type, gold))
             self.tokenizer = AutoTokenizer.from_pretrained(self.cfg.embedding.path, do_lower_case=True)
         elif self.cfg.dataset.lang == 'arabic':
-            self.filename = os.path.join(self.cfg.dataset.path, "2018-E-c-Ar-{}.txt".format(dataset_type))
+            self.filename = os.path.join(self.cfg.dataset.path, "2018-E-c-Ar-{}{}.txt".format(dataset_type, gold))
             self.tokenizer = AutoTokenizer.from_pretrained(self.cfg.embedding.path)
         elif self.cfg.dataset.lang == 'spanish':
-            self.filename = os.path.join(self.cfg.dataset.path, "2018-E-c-Es-{}.txt".format(dataset_type))
+            self.filename = os.path.join(self.cfg.dataset.path, "2018-E-c-Es-{}{}.txt".format(dataset_type, gold))
             self.tokenizer = AutoTokenizer.from_pretrained(self.cfg.embedding.path)
 
         self.data, self.labels = self.load_dataset()

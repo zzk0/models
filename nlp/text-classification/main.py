@@ -10,7 +10,7 @@ from dataset import TextClassificationDataModule, ImdbDataset, SemEval18Dataset
 from database import MLDatabase
 
 
-pl.seed_everything(42, workers=True)
+pl.seed_everything(23333333, workers=True)
 
 
 def parse_args(): 
@@ -68,6 +68,7 @@ def main():
     model = get_model(cfg)
 
     # training
+    checkpoint_callback = ModelCheckpoint(dirpath=os.path.join("./checkpoints", cfg.name), save_top_k=1, monitor="overall_val_loss")
     trainer = pl.Trainer(
         precision=cfg.train.precision,
         accelerator=cfg.train.accelerator,
@@ -78,11 +79,13 @@ def main():
         deterministic=True,
         callbacks=[
             EarlyStopping(monitor="val_loss", patience=10, mode="min"),
-            ModelCheckpoint(dirpath=os.path.join("./checkpoints", cfg.name), save_top_k=3, monitor="val_loss")
+            checkpoint_callback
         ]
     )
     trainer.fit(model, data_module)
-    trainer.test(model, data_module)
+    if cfg.name.startswith('span_emo'):
+        model = model.load_from_checkpoint(checkpoint_path=checkpoint_callback.best_model_path, cfg=cfg)
+        trainer.test(model, data_module)
     write_sqlite(cfg, model.hypermeters(), trainer.callback_metrics)
 
 

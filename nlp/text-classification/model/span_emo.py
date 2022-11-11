@@ -146,6 +146,7 @@ class SpanEmo(pl.LightningModule):
         self.f1_micro.update(y_pred, targets)
         self.uniform_log(stage + '_loss', loss)
         return {
+            'loss': loss.item() * num_rows,
             'y_pred': y_pred,
             'targets': targets.float()
         }
@@ -153,13 +154,16 @@ class SpanEmo(pl.LightningModule):
     def common_validation_test_epoch_end(self, step_outputs, stage: str):
         y_pred_across_devices = []
         targets_across_devices = []
+        overall_val_loss = 0
         for output in step_outputs:
             y_pred_across_devices.append(output['y_pred'])
             targets_across_devices.append(output['targets'])
+            overall_val_loss += output['loss']
         y_pred = torch.cat(y_pred_across_devices, dim=0).cpu().numpy()
         targets = torch.cat(targets_across_devices, dim=0).cpu().numpy()
         self.uniform_log(stage + '_f1_macro', self.f1_macro.compute().item())
         self.uniform_log(stage + '_f1_micro', self.f1_micro.compute().item())
         self.uniform_log(stage + '_jaccard', jaccard_score(targets, y_pred, average='samples'))
+        self.uniform_log('overall_val_loss', overall_val_loss)
         self.f1_macro.reset()
         self.f1_micro.reset()

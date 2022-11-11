@@ -16,9 +16,9 @@ train:
   accelerator_devices: 2
   epochs: 20
   num_workers: 8
-  train_batch_size: 128
-  dev_batch_size: 128
-  test_batch_size: 128
+  train_batch_size: 32
+  dev_batch_size: 32
+  test_batch_size: 32
   precision: 16
 optimizer:
   bert_lr: 2e-5  #  warning: a large learning rate will break the parameter of BERT
