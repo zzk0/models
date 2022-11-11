@@ -8,12 +8,13 @@ dataset:
   path: ./data/aclImdb
 train:
   accelerator: gpu
-  accelerator_devices: 2
+  accelerator_devices: 1
   epochs: 10
   num_workers: 8
   train_batch_size: 128
   dev_batch_size: 128
   test_batch_size: 128
+  precision: 16
 optimizer:
   lr: 1e-3
 model:

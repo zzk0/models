@@ -3,22 +3,35 @@
 ## TODO
 
 1. Add Job Scheduler to help run jobs
-2. Add more datasets and more models
+
+## Conda 
+
+You can create conda environment to reproduce result.
+
+```
+conda create -n lightning python=3.10
+conda activate ligthning
+pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+python3 main.py -c ./cfg/span_emo.yml
+```
 
 ## Docker
 
 You can install the requirements.txt. If you want to reproduce the result, we recommend use docker.
 
 ```
-curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun  # install docker
-nvidia-smi  # find out the lastest cuda version the driver supported
-# find the correspond docker image here: https://hub.docker.com/r/nvidia/cuda/
-docker pull nvidia/cuda:11.1.1-cudnn8-runtime-ubuntu18.04
-docker run -it --runtime=nvidia --network=host -v $(pwd):$(pwd) -w $(pwd) --shm-size=2g nvidia/cuda:11.1.1-cudnn8-runtime-ubuntu18.04 bash
-sed -i 's/security.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list
-sed -i 's/archive.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list
-apt update && apt install -y python3 python3-pip --fix-missing
-pip3 install -r requirements.txt  -i https://pypi.tuna.tsinghua.edu.cn/simple
+# install docker
+curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun
+
+# find out the lastest cuda version the driver supported
+nvidia-smi
+
+# find the correspond docker image here: https://hub.docker.com/r/pytorch/pytorch
+docker pull pytorch/pytorch:1.9.1-cuda11.1-cudnn8-runtime
+docker run -it --runtime=nvidia --network=host -v $(pwd):$(pwd) -w $(pwd) --shm-size=8g pytorch/pytorch:1.9.1-cuda11.1-cudnn8-runtime bash
+
+# inside docker container 
+pip3 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 python3 main.py -c ./cfg/text_cnn.yml
 ```
 
@@ -92,7 +105,7 @@ pretrained/
 ## tensorboard
 
 ```
-tensorboard --host 0.0.0.0 --port 24321 --logdir ./lightning_logs/ serve
+tensorboard --host 0.0.0.0 --port 24321 --logdir ./logs/ serve
 ```
 
 ## Job Scheduler

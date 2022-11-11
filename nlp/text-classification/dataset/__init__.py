@@ -3,6 +3,7 @@ from torch.utils.data import DataLoader
 from omegaconf.dictconfig import DictConfig
 
 from .imdb_dataset import ImdbDataset
+from .semeval18_dataset import SemEval18Dataset
 
 class TextClassificationDataModule(pl.LightningDataModule):
 
@@ -13,6 +14,8 @@ class TextClassificationDataModule(pl.LightningDataModule):
     def get_dataset_class(self):
         if self.cfg.dataset.name == 'imdb':
             return ImdbDataset
+        elif self.cfg.dataset.name == 'semeval18':
+            return SemEval18Dataset
         raise NotImplemented
 
     def setup(self, stage: str):

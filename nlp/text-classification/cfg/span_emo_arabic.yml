@@ -1,0 +1,32 @@
+name: span_emo_arabic
+embedding:
+  type: bert
+  name: asafaya/bert-base-arabic
+  path: ./pretrained/bert-base-uncased-arabic
+  dimension: 768
+  use_local: true
+max_seq_len: 128
+dataset:
+  name: semeval18
+  lang: arabic
+  path: ./data/semeval18/Ar
+  class_nums: 11
+train:
+  accelerator: gpu
+  accelerator_devices: 2
+  epochs: 20
+  num_workers: 8
+  train_batch_size: 128
+  dev_batch_size: 128
+  test_batch_size: 128
+  precision: 16
+optimizer:
+  bert_lr: 2e-5  #  warning: a large learning rate will break the parameter of BERT
+  ffn_lr: 0.001
+model:
+  loss_type: joint  # cross_entropy, corr_loss
+  alpha: 0.2
+  dropout: 0.1
+log_path: ./logs
+log_every_n_steps: 10
+sqlite_path: ./database/ml.db

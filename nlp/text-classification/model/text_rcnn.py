@@ -44,4 +44,6 @@ class TextRCNN(TextClassificationModel):
         parameters += 'bidirectional={}, '.format(self.cfg.model.bidirectional)
         parameters += 'dropout={}, '.format(self.cfg.model.dropout)
         parameters += 'num_classes={}'.format(self.cfg.model.num_classes)
+        parameters += 'precision={} '.format(self.cfg.train.precision)
+        parameters += 'ddp={} '.format(self.cfg.train.accelerator_devices > 1)
         return parameters

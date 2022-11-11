@@ -49,4 +49,6 @@ class TextCNN(TextClassificationModel):
         parameters += 'filter_sizes={}, '.format(self.cfg.model.filter_sizes)
         parameters += 'dropout={}, '.format(self.cfg.model.dropout)
         parameters += 'num_classes={}'.format(self.cfg.model.num_classes)
+        parameters += 'precision={} '.format(self.cfg.train.precision)
+        parameters += 'ddp={} '.format(self.cfg.train.accelerator_devices > 1)
         return parameters

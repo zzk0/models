@@ -6,3 +6,6 @@ logs/
 MNIST/
 pretrained/
 database/ml.db
+SpanEmo-master/
+SpanEmo-master.zip
+checkpoints/

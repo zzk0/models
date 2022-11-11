@@ -17,6 +17,7 @@ train:
   train_batch_size: 128
   dev_batch_size: 128
   test_batch_size: 128
+  precision: 16
 optimizer:
   lr: 3e-5  #  warning: a large learning rate will break the parameter of BERT
 model:

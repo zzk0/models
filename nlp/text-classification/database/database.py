@@ -14,12 +14,15 @@ class MLDatabase(object):
             `dataset` varchar(64) NOT NULL,
             `hypermeters` varchar(1024),
             `metrics` varchar(512),
-            `accuracy` float
+            `accuracy` float,
+            `f1_micro` float,
+            `f1_macro` float,
+            `jaccard` float
         );
         '''
         self.insert_sql = '''
-        INSERT INTO `text_classification` (username, model, dataset, hypermeters, metrics, accuracy)
-        VALUES ("{}", "{}", "{}", "{}", "{}", {})
+        INSERT INTO `text_classification` (username, model, dataset, hypermeters, metrics, accuracy, f1_micro, f1_macro, jaccard)
+        VALUES ("{}", "{}", "{}", "{}", "{}", {}, {}, {}, {})
         '''
         self.username = getpass.getuser()
         self.create_table()
@@ -30,7 +33,10 @@ class MLDatabase(object):
         self.conn.commit()
 
     def insert_experiment_result(self, result: dict):
-        formatted_sql = self.insert_sql.format(self.username, result['model'], result['dataset'], result['hypermeters'], result['metrics'], result['accuracy'])
+        formatted_sql = self.insert_sql.format(self.username, result['model'], result['dataset'], 
+            result['hypermeters'], result['metrics'], result['accuracy'],
+            result['f1_micro'], result['f1_macro'], result['jaccard']
+        )
         cursor = self.conn.cursor()
         cursor.execute(formatted_sql)
         self.conn.commit()

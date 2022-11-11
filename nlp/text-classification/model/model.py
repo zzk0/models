@@ -12,16 +12,10 @@ class TextClassificationModel(pl.LightningModule):
         self.cfg = cfg
         self.model = None
         self.valid_accuracy = torchmetrics.Accuracy()
-        self.best_accuracy = 0.0
 
     def hypermeters(self):
         parameters = ''
         return parameters
-
-    def metrics(self):
-        indicators = ''
-        indicators += 'acc={}'.format(self.best_accuracy)
-        return indicators
 
     def uniform_log(self, *args):
         if self.cfg.train.accelerator_devices > 1:
@@ -57,9 +51,8 @@ class TextClassificationModel(pl.LightningModule):
         self.uniform_log('val_loss', loss)
 
     def validation_epoch_end(self, validation_step_outputs):
-        self.uniform_log('val_acc', self.valid_accuracy.compute())
-        # the following line should be under self.uniform_log because the metrics need reduce across devices
-        self.best_accuracy = max(self.best_accuracy, self.valid_accuracy.compute().item())
+        accuracy = self.valid_accuracy.compute().item()
+        self.uniform_log('val_acc', accuracy)
         self.valid_accuracy.reset()
 
 

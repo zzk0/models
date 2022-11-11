@@ -1,4 +1,4 @@
-torch
+torch==1.13.0
 pytorch-lightning==1.8.0.post1
 omegaconf==2.2.3
 transformers==4.24.0
@@ -6,3 +6,6 @@ torchvision
 tqdm
 sentencepiece
 sqlite-web==0.4.0
+pandas
+ekphrasis
+scikit-learn
