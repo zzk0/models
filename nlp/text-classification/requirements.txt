@@ -9,3 +9,7 @@ sqlite-web==0.4.0
 pandas
 ekphrasis
 scikit-learn
+onnx
+onnxruntime
+onnxsim
+netron

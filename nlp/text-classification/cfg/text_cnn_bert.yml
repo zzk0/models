@@ -11,7 +11,7 @@ dataset:
   path: ./data/aclImdb
 train:
   accelerator: gpu
-  accelerator_devices: 2
+  accelerator_devices: 1
   epochs: 10
   num_workers: 8
   train_batch_size: 128
@@ -28,3 +28,4 @@ model:
 log_path: ./logs
 log_every_n_steps: 10
 sqlite_path: ./database/ml.db
+onnx_path: ./exported

@@ -87,4 +87,4 @@ if __name__ == '__main__':
     print(dataset[101]['labels'])
     print(dataset[20000])
     print(len(dataset))
-
+    print(dataset[10]['input_ids'].shape)

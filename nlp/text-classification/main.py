@@ -1,5 +1,6 @@
 import os
 import argparse
+import torch
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.callbacks import ModelCheckpoint
@@ -12,7 +13,7 @@ from database import MLDatabase
 
 def parse_args(): 
     args = argparse.ArgumentParser()
-    args.add_argument('-c', '--cfg', type=str, default='./cfg/span_emo_spanish.yml')
+    args.add_argument('-c', '--cfg', type=str, default='./cfg/text_cnn_bert.yml')
     args.add_argument('-s', '--seed', type=int, default=42)
     args.add_argument('-m', '--mode', type=str, default='train')
     return args.parse_args()
@@ -46,8 +47,15 @@ def write_sqlite(cfg, hypermeters, metrics):
     database.close()
 
 
-def export_onnx(model: pl.LightningModule, filename):
-    model.to_onnx(filename, export_params=True)
+def export_onnx(cfg, model: pl.LightningModule):
+    input_sample = [i for i in range(3000, 3000 + cfg.max_seq_len - 2)]
+    input_sample = [101, *input_sample, 102]
+    input_sample = torch.Tensor([input_sample, input_sample]).long()
+    input_names = ['input']
+    output_names = ['output']
+    dynamic_axes = {'input': {0: 'batch_size'}, 'output': {0: 'batch_size'}}
+    model.to_onnx(os.path.join(cfg['onnx_path'], cfg.name + ".onnx"), input_sample, export_params=True, opset_version=11,
+                  input_names=input_names, output_names=output_names, dynamic_axes=dynamic_axes)
 
 
 def main():
@@ -71,25 +79,41 @@ def main():
     model = get_model(cfg)
 
     # training
-    checkpoint_callback = ModelCheckpoint(dirpath=os.path.join("./checkpoints", cfg.name), save_top_k=1, monitor="overall_val_loss")
-    trainer = pl.Trainer(
-        precision=cfg.train.precision,
-        accelerator=cfg.train.accelerator,
-        devices=cfg.train.accelerator_devices,
-        logger=pl.loggers.TensorBoardLogger(cfg.log_path, cfg.name),
-        log_every_n_steps=cfg.log_every_n_steps,
-        max_epochs=cfg.train.epochs,
-        deterministic=True,
-        callbacks=[
-            EarlyStopping(monitor="val_loss", patience=10, mode="min"),
-            checkpoint_callback
-        ]
-    )
-    trainer.fit(model, data_module)
     if cfg.name.startswith('span_emo'):
+        checkpoint_callback = ModelCheckpoint(dirpath=os.path.join("./checkpoints", cfg.name), save_top_k=1, monitor="overall_val_loss")
+        trainer = pl.Trainer(
+            precision=cfg.train.precision,
+            accelerator=cfg.train.accelerator,
+            devices=cfg.train.accelerator_devices,
+            logger=pl.loggers.TensorBoardLogger(cfg.log_path, cfg.name),
+            log_every_n_steps=cfg.log_every_n_steps,
+            max_epochs=cfg.train.epochs,
+            deterministic=True,
+            callbacks=[
+                EarlyStopping(monitor="val_loss", patience=10, mode="min"),
+                checkpoint_callback
+            ]
+        )
+        trainer.fit(model, data_module)
         model = model.load_from_checkpoint(checkpoint_path=checkpoint_callback.best_model_path, cfg=cfg)
         trainer.test(model, data_module)
+    else:
+        trainer = pl.Trainer(
+            precision=cfg.train.precision,
+            accelerator=cfg.train.accelerator,
+            devices=cfg.train.accelerator_devices,
+            logger=pl.loggers.TensorBoardLogger(cfg.log_path, cfg.name),
+            log_every_n_steps=cfg.log_every_n_steps,
+            max_epochs=cfg.train.epochs,
+            deterministic=True,
+            callbacks=[
+                EarlyStopping(monitor="val_loss", patience=10, mode="min"),
+            ]
+        )
+        # trainer.fit(model, data_module)
     write_sqlite(cfg, model.hypermeters() + ', seed=' + str(args.seed), trainer.callback_metrics)
+    if 'onnx_path' in cfg:
+        export_onnx(cfg, model)
 
 
 if __name__ == '__main__':

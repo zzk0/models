@@ -9,3 +9,5 @@ database/ml.db
 SpanEmo-master/
 SpanEmo-master.zip
 checkpoints/
+exported/
+*.plan

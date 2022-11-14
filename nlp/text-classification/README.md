@@ -133,3 +133,66 @@ We use sqlite3 to store expriment results, you can start the sqlite-web to see t
 sqlite_web ./database/ml.db
 ```
 
+## Deployment
+
+export model to onnx and simplify it.
+
+```
+docker run --runtime=nvidia -it --network=host -v $(pwd):$(pwd) -w $(pwd) nvcr.io/nvidia/tritonserver:22.10-py3 bash
+pip install onnxsim
+pip install openvino-dev -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip install openvino-dev[onnx] -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip install onnx onnxruntime onnxsim -i https://pypi.tuna.tsinghua.edu.cn/simple
+onnxsim ./exported/text_cnn_bert.onnx ./exported/text_cnn_bert_simplified.onnx
+```
+
+### openvino
+
+```
+mo --input_model ./exported/text_cnn_bert_simplified.onnx --output_dir "./exported/text_cnn_bert_openvino/" --input_shape "(-1, 128)"
+mo --input_model ./exported/text_cnn_bert.onnx --output_dir "./exported/text_cnn_bert_openvino2/" --input_shape "(-1, 128)"
+```
+
+install: https://docs.openvino.ai/latest/openvino_docs_install_guides_install_dev_tools.html
+
+convert: https://docs.openvino.ai/latest/openvino_docs_MO_DG_prepare_model_convert_model_Convert_Model_From_ONNX.html
+
+dynamic_shape: https://pytorch.org/tutorials/advanced/super_resolution_with_onnxruntime.html
+
+fixed: https://zhuanlan.zhihu.com/p/443195180 ; https://github.com/Tencent/ncnn/issues/1298
+
+```
+root@fdc901676b18:/home/percent1/models/nlp/text-classification# python3 inference/openvino/main.py 
+(1, 128)
+[[-0.45846415  0.39795798]]
+
+root@fdc901676b18:/home/percent1/models/nlp/text-classification# python3 inference/openvino/main.py 
+(2, 128)
+Traceback (most recent call last):
+  File "inference/openvino/main.py", line 16, in <module>
+    infer_request.wait()
+RuntimeError: Caught exception: Check 'backward_compatible_check || in_out_elements_equal' failed at core/shape_inference/include/shape_nodes.hpp:93:
+While validating node 'v1::Reshape /model/embedding/embedding/encoder/layer.0/attention/self/Reshape_1 (/model/embedding/embedding/encoder/layer.0/attention/self/value/Add[0]:f32{?,128,768}, /model/embedding/embedding/encoder/layer.0/attention/self/Constant_1[0]:i32{4}) -> (f32{1,128,12,64})' with friendly_name '/model/embedding/embedding/encoder/layer.0/attention/self/Reshape_1':
+Requested output shape {1,128,12,64} is incompatible with input shape {2,128,768}
+```
+
+openvino backend implementation seems have problem when model inputs are dynamic shape.
+
+```
+    ov::Shape input_shape;
+    RETURN_IF_OPENVINO_ASSIGN_ERROR(
+        input_shape,
+        model_inputs[model_inputs_name_to_index[io_name]].get_shape(),
+        ("retrieving original shapes from input " + io_name).c_str());
+
+get_shape was called on a descriptor::Tensor with dynamic shape
+```
+
+
+### tensorrt
+
+trtexec is installed in triton docker images, so don't need to install tensorrt.
+
+```
+/usr/src/tensorrt/bin/trtexec --workspace=2048 --onnx=exported/text_cnn_bert_simplified.onnx --saveEngine=exported/text_cnn_bert_simplified.engine --minShapes=input:1x128 --optShapes=input:64x128 --maxShapes=input:128x128
+```

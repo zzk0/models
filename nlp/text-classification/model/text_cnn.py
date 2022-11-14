@@ -19,7 +19,7 @@ class TorchTextCNN(nn.Module):
 
     def conv_and_pool(self, x, conv):
         x = F.relu(conv(x)).squeeze(3)
-        x = F.max_pool1d(x, x.size(2)).squeeze(2)
+        x = F.max_pool1d(x, int(x.size(2))).squeeze(2)
         return x
 
     def forward(self, x):
@@ -27,7 +27,22 @@ class TorchTextCNN(nn.Module):
         if self.cfg.embedding.type in ('bert'):
             out = out[0]
         out = out.unsqueeze(1)
-        out = torch.cat([self.conv_and_pool(out, conv) for conv in self.convs], 1)
+        
+        # out = torch.cat([self.conv_and_pool(out, conv) for conv in self.convs], 1)
+        
+        x0 = F.relu(self.convs[0](out)).squeeze(3)
+        x0 = F.max_pool1d(x0, 127)
+        x0 = x0.view((x0.shape[0], x0.shape[1]))
+
+        x1 = F.relu(self.convs[1](out)).squeeze(3)
+        x1 = F.max_pool1d(x1, 126)
+        x1 = x1.view((x1.shape[0], x1.shape[1]))
+
+        x2 = F.relu(self.convs[2](out)).squeeze(3)
+        x2 = F.max_pool1d(x2, 125)
+        x2 = x2.view((x2.shape[0], x2.shape[1]))
+
+        out = torch.cat([x0, x1, x2], dim=1)
         out = self.dropout(out)
         out = self.fc(out)
         return out

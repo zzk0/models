@@ -1,0 +1,38 @@
+name: "text_cnn_bert_openvino"
+backend: "openvino"
+max_batch_size: 128
+input [
+  {
+    name: "input"
+    data_type: TYPE_INT32
+    dims: [ 128 ]
+  }
+]
+output [
+  {
+    name: "output"
+    data_type: TYPE_FP32
+    dims: [ 2 ]
+  }
+]
+instance_group [
+  {
+    count: 1
+    kind: KIND_CPU
+  }
+]
+
+parameters: {
+  key: "SKIP_OV_DYNAMIC_BATCHSIZE"
+  value: {
+    string_value:"YES"
+  }
+}
+
+parameters: {
+  key: "RESHAPE_IO_LAYERS"
+  value: {
+    string_value:"NO"
+  }
+}
+
