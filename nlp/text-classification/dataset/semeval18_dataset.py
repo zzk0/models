@@ -5,7 +5,6 @@ from tqdm import tqdm
 from pathlib import Path
 from torch.utils.data import Dataset
 from transformers import AutoTokenizer
-from typing import Any, Dict
 from ekphrasis.classes.tokenizer import SocialTokenizer
 from ekphrasis.classes.preprocessor import TextPreProcessor
 
@@ -34,13 +33,16 @@ class SemEval18Dataset(Dataset):
         gold = '-gold' if dataset_type == 'test' else ''
         if self.cfg.dataset.lang == 'english':
             self.filename = os.path.join(self.cfg.dataset.path, "2018-E-c-En-{}{}.txt".format(dataset_type, gold))
-            self.tokenizer = AutoTokenizer.from_pretrained(self.cfg.embedding.path, do_lower_case=True)
+            # self.tokenizer = AutoTokenizer.from_pretrained(self.cfg.embedding.path, do_lower_case=True)
         elif self.cfg.dataset.lang == 'arabic':
             self.filename = os.path.join(self.cfg.dataset.path, "2018-E-c-Ar-{}{}.txt".format(dataset_type, gold))
-            self.tokenizer = AutoTokenizer.from_pretrained(self.cfg.embedding.path)
         elif self.cfg.dataset.lang == 'spanish':
             self.filename = os.path.join(self.cfg.dataset.path, "2018-E-c-Es-{}{}.txt".format(dataset_type, gold))
-            self.tokenizer = AutoTokenizer.from_pretrained(self.cfg.embedding.path)
+
+        if self.cfg.embedding.use_local:
+            self.tokenizer = AutoTokenizer.from_pretrained(self.cfg.embedding.path)    
+        else:
+            self.tokenizer = AutoTokenizer.from_pretrained(self.cfg.embedding.name)
 
         self.data, self.labels = self.load_dataset()
         self.inputs, self.lengths, self.label_indices = self.process_data()
@@ -73,12 +75,9 @@ class SemEval18Dataset(Dataset):
             label_names = ['غضب', 'توقع', 'قر', 'خوف', 'سعادة', 'حب', 'تف', 'الياس', 'حزن', 'اند', 'ثقة']
         elif self.cfg.dataset.lang == 'spanish':
             segment_a = "ira anticipación asco miedo alegría amor optimismo pesimismo tristeza sorpresa or confianza?"
-            label_names = ['ira', 'anticipación', 'asco', 'miedo', 'alegría', 'amor', 'optimismo',
+            label_names = ['ira', 'anticip', 'asco', 'miedo', 'alegr', 'amor', 'optimismo',
                            'pesim', 'tristeza', 'sorpresa', 'confianza']
-            # segment_a = "ira anticipaciÃ³n asco miedo alegrÃ­a amor optimismo pesimismo tristeza sorpresa or confianza?"
-            # label_names = ['ira', 'anticip', 'asco', 'miedo', 'alegr', 'amor', 'optimismo',
-            #                'pesim', 'tristeza', 'sorpresa', 'confianza']
-
+ 
         inputs, lengths, label_indices = [], [], []
         for x in tqdm(self.data, desc='PreProcessing dataset ..'):
             x = ' '.join(preprocessor(x))

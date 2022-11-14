@@ -10,12 +10,10 @@ from dataset import TextClassificationDataModule, ImdbDataset, SemEval18Dataset
 from database import MLDatabase
 
 
-pl.seed_everything(23333333, workers=True)
-
-
 def parse_args(): 
     args = argparse.ArgumentParser()
-    args.add_argument('-c', '--cfg', type=str, default='./cfg/span_emo_arabic.yml')
+    args.add_argument('-c', '--cfg', type=str, default='./cfg/span_emo_spanish.yml')
+    args.add_argument('-s', '--seed', type=int, default=42)
     args.add_argument('-m', '--mode', type=str, default='train')
     return args.parse_args()
 
@@ -48,10 +46,15 @@ def write_sqlite(cfg, hypermeters, metrics):
     database.close()
 
 
+def export_onnx(model: pl.LightningModule, filename):
+    model.to_onnx(filename, export_params=True)
+
+
 def main():
     args = parse_args()
     cfg = OmegaConf.load(args.cfg)
 
+    pl.seed_everything(args.seed, workers=True)
     if cfg.embedding.type not in ('bert'):
         # build vocab
         imdb_dataset = ImdbDataset(cfg, 'train')
@@ -86,7 +89,7 @@ def main():
     if cfg.name.startswith('span_emo'):
         model = model.load_from_checkpoint(checkpoint_path=checkpoint_callback.best_model_path, cfg=cfg)
         trainer.test(model, data_module)
-    write_sqlite(cfg, model.hypermeters(), trainer.callback_metrics)
+    write_sqlite(cfg, model.hypermeters() + ', seed=' + str(args.seed), trainer.callback_metrics)
 
 
 if __name__ == '__main__':
