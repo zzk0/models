@@ -8,41 +8,55 @@ def preprocess(text: str):
     tokenizer = Tokenizer.from_file('./pretrained/bert-base-uncased/tokenizer.json')
     tokenizer.enable_truncation(max_length=128)
     tokenizer.enable_padding(length=128)
-    input = tokenizer.encode(text)
-    print(input.ids, input.tokens)
-    print(len(input.ids))
-    return input.ids
+    inputs = tokenizer.encode_batch(text)
+    inputs_ids = []
+    for input in inputs:
+        inputs_ids.append(input.ids)
+    inputs_ids = np.array(inputs_ids).astype(np.int32)
+    return inputs_ids
 
 
-if __name__ == '__main__':
-    triton_client = httpclient.InferenceServerClient(url='127.0.0.1:8000')
-
-    input_ids = preprocess('''
-        I went and saw this movie last night after being coaxed to by a few friends of mine. 
-        I'll admit that I was reluctant to see it because from what I knew of Ashton Kutcher he was only able to do comedy. 
-        I was wrong. Kutcher played the character of Jake Fischer very well, and Kevin Costner played Ben Randall with such professionalism. 
-        The sign of a good movie is that it can toy with our emotions. This one did exactly that. 
-        The entire theater (which was sold out) was overcome by laughter during the first half of the movie, 
-        and were moved to tears during the second half. While exiting the theater I not only saw many women in tears, 
-        but many full grown men as well, trying desperately not to let anyone see them crying. 
-        This movie was great, and I suggest that you go see it before you judge.
-    ''')
-
-    N = 1
-    # input_sample = [i for i in range(3000, 3000 + 128 - 2)]
-    # input_sample = [101, *input_sample, 102]
-    input_sample = np.array([input_ids for i in range(N)]).astype(np.int32)
-    print(input_sample.shape)
-
-    t0 = time.time()
+def send_ids(triton_client, text: str):
+    input_ids = preprocess(text)
     inputs = []
-    inputs.append(httpclient.InferInput('input', input_sample.shape, "INT32"))
-    inputs[0].set_data_from_numpy(input_sample, binary_data=False)
+    inputs.append(httpclient.InferInput('input', input_ids.shape, "INT32"))
+    inputs[0].set_data_from_numpy(input_ids, binary_data=False)
     outputs = []
     outputs.append(httpclient.InferRequestedOutput('output', binary_data=False))
     results = triton_client.infer('text_cnn_bert_tensorrt', inputs=inputs, outputs=outputs)
     output_data0 = results.as_numpy('output')
+    return output_data0
 
+
+def send_text(triton_client, text: str):
+    text_bytes = []
+    for sentence in text:
+        text_bytes.append(str.encode(sentence, encoding='UTF-8'))
+    text_np = np.array([text_bytes], dtype=np.object_)
+    inputs = []
+    inputs.append(httpclient.InferInput('input', text_np.shape, "BYTES"))
+    inputs[0].set_data_from_numpy(text_np, binary_data=False)
+    outputs = []
+    outputs.append(httpclient.InferRequestedOutput('output', binary_data=False))
+    results = triton_client.infer('text_cnn_bert_pipeline', inputs=inputs, outputs=outputs)
+    output_data0 = results.as_numpy('output')
+    return output_data0
+
+
+
+if __name__ == '__main__':
+    triton_client = httpclient.InferenceServerClient(url='127.0.0.1:8000')
+    text = ["I went and saw this movie last night after being coaxed to by a few friends of mine. I'll admit that I was reluctant to see it because from what I knew of Ashton Kutcher he was only able to do comedy. I was wrong. Kutcher played the character of Jake Fischer very well, and Kevin Costner played Ben Randall with such professionalism. The sign of a good movie is that it can toy with our emotions. This one did exactly that. The entire theater (which was sold out) was overcome by laughter during the first half of the movie, and were moved to tears during the second half. While exiting the theater I not only saw many women in tears, but many full grown men as well, trying desperately not to let anyone see them crying. This movie was great, and I suggest that you go see it before you judge."]
+
+    _ = send_ids(triton_client, text)
+    t0 = time.time()
+    res = send_ids(triton_client, text)
     t1 = time.time()
-    print(output_data0.shape)
-    print('time cost: ', t1 - t0 ,output_data0)
+    print('send ids time cost: ', t1 - t0, res)
+
+    _ = send_text(triton_client, text)
+    t0 = time.time()
+    res = send_text(triton_client, text)
+    t1 = time.time()
+    print('send str time cost: ', t1 - t0, res)
+

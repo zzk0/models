@@ -1,0 +1,24 @@
+name: "text_preprocess"
+backend: "python"
+max_batch_size: 128
+dynamic_batching { }
+input [
+  {
+    name: "input"
+    data_type: TYPE_STRING
+    dims: [ 1 ]
+  }
+]
+output [
+  {
+    name: "output"
+    data_type: TYPE_INT32
+    dims: [ 128 ]
+  }
+]
+
+instance_group [
+  {
+    kind: KIND_CPU
+  }
+]
