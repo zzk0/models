@@ -135,6 +135,12 @@ sqlite_web ./database/ml.db
 
 ## Deployment
 
+TODO:
+
+1. tensorrt dynamic batch size
+2. openvino can support dynamic batch size, but openvino backends not
+
+
 export model to onnx and simplify it.
 
 ```

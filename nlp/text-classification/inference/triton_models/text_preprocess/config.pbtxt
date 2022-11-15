@@ -4,14 +4,14 @@ max_batch_size: 128
 dynamic_batching { }
 input [
   {
-    name: "input"
+    name: "preprocess_input"
     data_type: TYPE_STRING
     dims: [ 1 ]
   }
 ]
 output [
   {
-    name: "output"
+    name: "preprocess_output"
     data_type: TYPE_INT32
     dims: [ 128 ]
   }

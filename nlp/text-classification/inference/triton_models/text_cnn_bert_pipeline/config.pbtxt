@@ -3,14 +3,14 @@ platform: "ensemble"
 max_batch_size: 128
 input [
   {
-    name: "input"
+    name: "pipeline_input"
     data_type: TYPE_STRING
-    dims: [ -1 ]
+    dims: [ 1 ]
   }
 ]
 output [
   {
-    name: "output"
+    name: "pipeline_output"
     data_type: TYPE_FP32
     dims: [ 2 ]
   }
@@ -22,11 +22,11 @@ ensemble_scheduling {
       model_name: "text_preprocess"
       model_version: 1
       input_map: {
-        key: "input"
-        value: "input"
+        key: "preprocess_input"
+        value: "pipeline_input"
       }
       output_map: {
-        key: "output"
+        key: "preprocess_output"
         value: "input_ids"
       }
     },
@@ -39,7 +39,7 @@ ensemble_scheduling {
       }
       output_map: {
         key: "output"
-        value: "output"
+        value: "pipeline_output"
       }
     }
   ]

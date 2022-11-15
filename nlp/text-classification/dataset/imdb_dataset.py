@@ -67,8 +67,8 @@ class ImdbDataset(Dataset):
 
     def __getitem__(self, index) -> Dict[str, Any]:
         return {
-            # 'items': self.items[index],
-            # 'tags': self.tags[index],
+            'items': self.items[index],
+            'tags': self.tags[index],
             'input_ids': self.inputs['input_ids'][index],
             'labels': self.labels[index]
         }

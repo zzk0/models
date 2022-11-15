@@ -41,19 +41,31 @@ class TextClassificationModel(pl.LightningModule):
     def training_epoch_end(self, outputs):
         self.valid_accuracy.reset()
 
-    def validation_step(self, val_batch, batch_idx):
-        x = val_batch['input_ids']
-        y = val_batch['labels']
+    def validtaion_and_test_commom_step(self, stage: str, batch, batch_idx):
+        x = batch['input_ids']
+        y = batch['labels']
         out = self.forward(x)
         loss = F.cross_entropy(out, y)
         out = torch.argmax(out, 1)
         self.valid_accuracy.update(out, y)
-        self.uniform_log('val_loss', loss)
+        self.uniform_log(stage + '_loss', loss)
+
+    def validtaion_and_test_commom_end(self, stage: str, outputs):
+        accuracy = self.valid_accuracy.compute().item()
+        self.uniform_log(stage + '_acc', accuracy)
+        self.valid_accuracy.reset()
+
+    def validation_step(self, val_batch, batch_idx):
+        self.validtaion_and_test_commom_step('val', val_batch, batch_idx)
 
     def validation_epoch_end(self, validation_step_outputs):
-        accuracy = self.valid_accuracy.compute().item()
-        self.uniform_log('val_acc', accuracy)
-        self.valid_accuracy.reset()
+        self.validtaion_and_test_commom_end(validation_step_outputs)
+
+    def test_step(self, test_batch, batch_idx):
+        self.validtaion_and_test_commom_step('test', test_batch, batch_idx)
+
+    def test_epoch_end(self, test_step_outputs):
+        self.validtaion_and_test_commom_end('test', test_step_outputs)
 
 
 class Embedding(nn.Module):

@@ -43,20 +43,40 @@ def send_text(triton_client, text: str):
     return output_data0
 
 
+def send_text_to_preprocess(triton_client, text: str):
+    text_bytes = []
+    for sentence in text:
+        text_bytes.append(str.encode(sentence, encoding='UTF-8'))
+    text_np = np.array([text_bytes], dtype=np.object_)
+    inputs = []
+    inputs.append(httpclient.InferInput('preprocess_input', text_np.shape, "BYTES"))
+    inputs[0].set_data_from_numpy(text_np, binary_data=False)
+    outputs = []
+    outputs.append(httpclient.InferRequestedOutput('preprocess_output', binary_data=False))
+    results = triton_client.infer('text_preprocess', inputs=inputs, outputs=outputs)
+    output_data0 = results.as_numpy('preprocess_output')
+    return output_data0
+
 
 if __name__ == '__main__':
     triton_client = httpclient.InferenceServerClient(url='127.0.0.1:8000')
-    text = ["I went and saw this movie last night after being coaxed to by a few friends of mine. I'll admit that I was reluctant to see it because from what I knew of Ashton Kutcher he was only able to do comedy. I was wrong. Kutcher played the character of Jake Fischer very well, and Kevin Costner played Ben Randall with such professionalism. The sign of a good movie is that it can toy with our emotions. This one did exactly that. The entire theater (which was sold out) was overcome by laughter during the first half of the movie, and were moved to tears during the second half. While exiting the theater I not only saw many women in tears, but many full grown men as well, trying desperately not to let anyone see them crying. This movie was great, and I suggest that you go see it before you judge."]
+    text = ["I went to the movie as a Sneak Preview in Austria. So didn't have an idea what I am going to see. The story is very normal. The movie is very long , I believe it could have cut to 1/2 without causing any problems to the story. Its the type of movie you can see in a boring night which you want to get bored more ! Ashton Kutcher was very good . Kevin Costner is OK. The movie is speaking about the US Coast Guards, how they are trained , their life style and the problems they face. As there aren't much effects in the movie. So if you want to watch it , then no need to waste your money and time going to the Cinema. Would be more effective to watch it at home when it gets on DVDs."]
 
-    _ = send_ids(triton_client, text)
-    t0 = time.time()
-    res = send_ids(triton_client, text)
-    t1 = time.time()
-    print('send ids time cost: ', t1 - t0, res)
+    res = preprocess(text)
+    print(res)
 
-    _ = send_text(triton_client, text)
-    t0 = time.time()
-    res = send_text(triton_client, text)
-    t1 = time.time()
-    print('send str time cost: ', t1 - t0, res)
+    res = send_text_to_preprocess(triton_client, text)
+    print(res)
+
+    # _ = send_ids(triton_client, text)
+    # t0 = time.time()
+    # res = send_ids(triton_client, text)
+    # t1 = time.time()
+    # print('send ids time cost: ', t1 - t0, res)
+
+    # _ = send_text(triton_client, text)
+    # t0 = time.time()
+    # res = send_text(triton_client, text)
+    # t1 = time.time()
+    # print('send str time cost: ', t1 - t0, res)
 

@@ -10,7 +10,7 @@ input_sample = [101, *input_sample, 102]
 input_sample = np.array([input_sample for i in range(N)])
 print(input_sample.shape)
 
-ort_session = onnxruntime.InferenceSession('./exported/text_cnn_bert.onnx')
+ort_session = onnxruntime.InferenceSession('./exported/text_cnn_bert_simplified.onnx')
 ort_inputs = {'input': input_sample}
 
 t0 = time.time()

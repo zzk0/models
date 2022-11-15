@@ -13,3 +13,4 @@ onnx
 onnxruntime
 onnxsim
 netron
+tritonclient[http]
