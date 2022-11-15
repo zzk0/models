@@ -1,6 +1,7 @@
 import os
 import argparse
 import torch
+import time
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.callbacks import ModelCheckpoint
@@ -58,6 +59,20 @@ def export_onnx(cfg, model: pl.LightningModule):
                   input_names=input_names, output_names=output_names, dynamic_axes=dynamic_axes)
 
 
+def test_pytorch_inference(cfg, model):
+    input_sample = [i for i in range(3000, 3000 + cfg.max_seq_len - 2)]
+    input_sample = [101, *input_sample, 102]
+    input_sample = torch.Tensor([input_sample]).long()
+    model = model.model
+    model.eval()
+    with torch.no_grad():
+        y = model(input_sample)
+        t0 = time.time()
+        y = model(input_sample)
+        t1 = time.time()
+        print('time cost: ', t1 - t0, y)
+
+
 def main():
     args = parse_args()
     cfg = OmegaConf.load(args.cfg)
@@ -110,9 +125,10 @@ def main():
                 EarlyStopping(monitor="val_loss", patience=10, mode="min"),
             ]
         )
-        # trainer.fit(model, data_module)
+        trainer.fit(model, data_module)
     write_sqlite(cfg, model.hypermeters() + ', seed=' + str(args.seed), trainer.callback_metrics)
     if 'onnx_path' in cfg:
+        test_pytorch_inference(cfg, model)
         export_onnx(cfg, model)
 
 

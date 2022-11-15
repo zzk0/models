@@ -196,3 +196,12 @@ trtexec is installed in triton docker images, so don't need to install tensorrt.
 ```
 /usr/src/tensorrt/bin/trtexec --workspace=2048 --onnx=exported/text_cnn_bert_simplified.onnx --saveEngine=exported/text_cnn_bert_simplified.engine --minShapes=input:1x128 --optShapes=input:64x128 --maxShapes=input:128x128
 ```
+
+
+### preprocess
+
+BERT models need tokenize the sentence, there are two places we can put the tokenizer.
+
+First, deploy the tokenizer on the server. Advantages: a unified API, client just need to post sentence. Disadvantags: increase server load. 
+
+Second, deploy the tokenizer on the client side. Advantags: Make full use of client devices to preprocess. Disadvantags: client need know how to preprocess or server-side developers need provide different language sdk. The inference may be slower if client device has poor performance.
