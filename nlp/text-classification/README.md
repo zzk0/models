@@ -205,3 +205,15 @@ BERT models need tokenize the sentence, there are two places we can put the toke
 First, deploy the tokenizer on the server. Advantages: a unified API, client just need to post sentence. Disadvantags: increase server load. Raw data may be larger, so the data transfer would take longer. 
 
 Second, deploy the tokenizer on the client side. Advantags: Make full use of client devices to preprocess. Disadvantags: client need know how to preprocess or server-side developers need provide different language sdk. The inference may be slower if client device has poor performance. The client device may not meet the software conditions needed by the preprocess procedure.
+
+### benchmark result
+
+Test dataset has 25000 samples, 12500 for each class.
+
+```
+torch + gpu: 305.9162347316742 0.88172
+tensorrt: 193.6234245300293 0.88172
+
+torch + cpu: 1415.3084518909454 0.88172
+openvino: 709.4691143035889 0.88172
+```

@@ -36,10 +36,11 @@ def preprocess(tokenizer, text: str):
 
 
 if __name__ == '__main__':
+    device = 'cpu' # 'cuda:0'
     cfg = OmegaConf.load('./cfg/text_cnn_bert.yml')
     model = TextCNN(cfg)
     model = model.load_from_checkpoint(checkpoint_path='logs/text_cnn_bert/version_1/checkpoints/epoch=9-step=980.ckpt', cfg=cfg)
-    model.to('cuda:0')
+    model.to(device)
 
     tokenizer_path = os.path.join('./pretrained/bert-base-cased/tokenizer.json')
     tokenizer = Tokenizer.from_file(tokenizer_path)
@@ -53,7 +54,7 @@ if __name__ == '__main__':
     with torch.no_grad():
         for i in tqdm(range(len(items))):
             input_ids = preprocess(tokenizer, [items[i]])
-            input_ids = torch.Tensor(input_ids).int().to('cuda:0')
+            input_ids = torch.Tensor(input_ids).int().to(device)
             res = model(input_ids)
             res = 0 if res[0][0] > res[0][1] else 1
             correct_count += (res == tags[i])

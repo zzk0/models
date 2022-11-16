@@ -2,7 +2,7 @@ import numpy as np
 import time
 import openvino.runtime as ov
 
-N = 10
+N = 1
 
 input_sample = [i for i in range(3000, 3000 + 128 - 2)]
 input_sample = [101, *input_sample, 102]

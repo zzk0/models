@@ -1,18 +1,17 @@
 name: "text_cnn_bert_openvino"
 backend: "openvino"
-max_batch_size: 128
 input [
   {
     name: "input"
     data_type: TYPE_INT32
-    dims: [ 128 ]
+    dims: [ 1, 128 ]
   }
 ]
 output [
   {
     name: "output"
     data_type: TYPE_FP32
-    dims: [ 2 ]
+    dims: [ 1, 2 ]
   }
 ]
 instance_group [

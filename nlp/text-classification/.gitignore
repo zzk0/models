@@ -11,3 +11,6 @@ SpanEmo-master.zip
 checkpoints/
 exported/
 *.plan
+inference/triton_models/text_cnn_bert_openvino/1/model.bin
+inference/triton_models/text_cnn_bert_openvino/1/model.xml
+inference/triton_models/text_cnn_bert_openvino/1/model.mapping
