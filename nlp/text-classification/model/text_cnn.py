@@ -31,15 +31,15 @@ class TorchTextCNN(nn.Module):
         # out = torch.cat([self.conv_and_pool(out, conv) for conv in self.convs], 1)
         
         x0 = F.relu(self.convs[0](out)).squeeze(3)
-        x0 = F.max_pool1d(x0, 127)
+        x0 = F.max_pool1d(x0, self.cfg.max_seq_len - 1)
         x0 = x0.view((x0.shape[0], x0.shape[1]))
 
         x1 = F.relu(self.convs[1](out)).squeeze(3)
-        x1 = F.max_pool1d(x1, 126)
+        x1 = F.max_pool1d(x1, self.cfg.max_seq_len - 2)
         x1 = x1.view((x1.shape[0], x1.shape[1]))
 
         x2 = F.relu(self.convs[2](out)).squeeze(3)
-        x2 = F.max_pool1d(x2, 125)
+        x2 = F.max_pool1d(x2, self.cfg.max_seq_len - 3)
         x2 = x2.view((x2.shape[0], x2.shape[1]))
 
         out = torch.cat([x0, x1, x2], dim=1)
@@ -53,6 +53,11 @@ class TextCNN(TextClassificationModel):
         super().__init__(cfg)
         self.cfg = cfg
         self.model = TorchTextCNN(self.cfg)
+
+    def configure_optimizers(self):
+        optimizer = torch.optim.AdamW(self.parameters(), lr=self.cfg.optimizer.lr, 
+                                      weight_decay=self.cfg.optimizer.weight_decay)
+        return optimizer
 
     def hypermeters(self):
         parameters = ''

@@ -1,10 +1,10 @@
-name: text_cnn_bert
+name: bert_cls
 embedding:
   type: bert
-  name: bert-base-cased
-  dimension: 768
+  name: bert-large-uncased
+  dimension: 1024
   use_local: true
-  path: ./pretrained/bert-base-cased
+  path: ./pretrained/bert-large-uncased
 max_seq_len: 512
 dataset:
   name: imdb
@@ -14,16 +14,15 @@ train:
   accelerator_devices: 2
   epochs: 100
   num_workers: 8
-  train_batch_size: 32
-  dev_batch_size: 32
-  test_batch_size: 32
+  train_batch_size: 8
+  dev_batch_size: 8
+  test_batch_size: 8
   precision: 16
 optimizer:
-  lr: 3e-5  #  warning: a large learning rate will break the parameter of BERT
+  lr: 1e-5  #  warning: a large learning rate will break the parameter of BERT
+  weight_decay: 0.0005
 model:
-  dropout: 0.5
-  num_filters: 256
-  filter_sizes: [2, 3, 4]
+  dropout: 0.1
   num_classes: 2
 log_path: ./logs
 log_every_n_steps: 10

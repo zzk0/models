@@ -7,7 +7,7 @@ from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.callbacks import ModelCheckpoint
 from omegaconf import OmegaConf
 
-from model import TextCNN, TextRNN, TextRCNN, SpanEmo
+from model import TextCNN, TextRNN, TextRCNN, SpanEmo, BertCls
 from dataset import TextClassificationDataModule, ImdbDataset, SemEval18Dataset
 from database import MLDatabase
 
@@ -29,6 +29,8 @@ def get_model(cfg):
         return TextRCNN(cfg)
     elif cfg.name.startswith('span_emo'):
         return SpanEmo(cfg)
+    elif cfg.name.startswith('bert_cls'):
+        return BertCls(cfg)
     else:
         raise NotImplemented
 

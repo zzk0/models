@@ -61,7 +61,7 @@ class Embedding(nn.Module):
     def __init__(self, cfg):
         super().__init__()
         self.cfg = cfg
-        self.embedding_size = 768
+        self.embedding_size = cfg.embedding.dimension
         if self.cfg.embedding.type in ('bert'):
             if self.cfg.embedding.use_local:
                 self.embedding = AutoModel.from_pretrained(self.cfg.embedding.path, local_files_only=True)

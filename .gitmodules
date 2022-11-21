@@ -1,0 +1,3 @@
+[submodule "nlp/OpenAttack"]
+	path = nlp/OpenAttack
+	url = git@github.com:zzk0/OpenAttack.git
