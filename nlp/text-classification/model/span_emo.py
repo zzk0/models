@@ -144,11 +144,11 @@ class SpanEmo(pl.LightningModule):
         return self.common_validation_test_epoch_end(test_step_outputs, 'test')
 
     def common_validation_test_step(self, batch, batch_idx, stage: str):
-        loss, num_rows, _, y_pred, targets = self.forward(batch)
+        loss, num_rows, logits, y_pred, targets = self.forward(batch)
         self.f1_macro.update(y_pred, targets)
         self.f1_micro.update(y_pred, targets)
         if 'labels' in batch:
-            self.valid_accuracy.update(y_pred, batch['labels'])
+            self.valid_accuracy.update(torch.softmax(logits, dim=-1), batch['labels'])
         self.uniform_log(stage + '_loss', loss)
         return {
             'loss': loss.item() * num_rows,
