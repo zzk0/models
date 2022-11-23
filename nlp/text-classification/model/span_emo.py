@@ -26,15 +26,19 @@ class TorchSpanEmo(nn.Module):
 
     def forward(self, batch):
         inputs = batch['input_ids']
-        targets = batch['targets']
         label_idxs = batch['label_idxs'][0]
         num_rows = inputs.size(0)
 
         out = self.embedding(inputs)
         out = out[0]
         logits = self.ffn(out).squeeze(-1).index_select(dim=1, index=label_idxs)
+        y_pred = self.compute_pred(logits)
+
+        if 'targets' not in batch:
+            return None, num_rows, logits, y_pred, None
 
         # Loss Function
+        targets = batch['targets']
         if self.loss_type == 'joint':
             cel = F.binary_cross_entropy_with_logits(logits, targets)
             cl = self.corr_loss(logits, targets)
@@ -43,9 +47,7 @@ class TorchSpanEmo(nn.Module):
             loss = F.binary_cross_entropy_with_logits(logits, targets)
         elif self.loss_type == 'corr_loss':
             loss = self.corr_loss(logits, targets)
-
-        y_pred = self.compute_pred(logits)
-        return loss, num_rows, y_pred, targets
+        return loss, num_rows, logits, y_pred, targets
 
     @staticmethod
     def corr_loss(y_hat, y_true, reduction='mean'):
@@ -75,6 +77,7 @@ class SpanEmo(pl.LightningModule):
         self.model = TorchSpanEmo(self.cfg)
         self.f1_macro = torchmetrics.classification.MultilabelF1Score(self.cfg.dataset.class_nums, average='macro')
         self.f1_micro = torchmetrics.classification.MultilabelF1Score(self.cfg.dataset.class_nums, average='micro')
+        self.valid_accuracy = torchmetrics.Accuracy()
 
     def hypermeters(self):
         parameters = ''
@@ -117,7 +120,7 @@ class SpanEmo(pl.LightningModule):
         }
 
     def training_step(self, train_batch, batch_idx):
-        loss, _, _, _ = self.forward(train_batch)
+        loss, _, _, _, _ = self.forward(train_batch)
         self.uniform_log('train_loss', loss)
         return loss
 
@@ -141,9 +144,11 @@ class SpanEmo(pl.LightningModule):
         return self.common_validation_test_epoch_end(test_step_outputs, 'test')
 
     def common_validation_test_step(self, batch, batch_idx, stage: str):
-        loss, num_rows, y_pred, targets = self.forward(batch)
+        loss, num_rows, _, y_pred, targets = self.forward(batch)
         self.f1_macro.update(y_pred, targets)
         self.f1_micro.update(y_pred, targets)
+        if 'labels' in batch:
+            self.valid_accuracy.update(y_pred, batch['labels'])
         self.uniform_log(stage + '_loss', loss)
         return {
             'loss': loss.item() * num_rows,
@@ -163,7 +168,9 @@ class SpanEmo(pl.LightningModule):
         targets = torch.cat(targets_across_devices, dim=0).cpu().numpy()
         self.uniform_log(stage + '_f1_macro', self.f1_macro.compute().item())
         self.uniform_log(stage + '_f1_micro', self.f1_micro.compute().item())
+        self.uniform_log(stage + '_accuracy', self.valid_accuracy.compute().item())
         self.uniform_log(stage + '_jaccard', jaccard_score(targets, y_pred, average='samples'))
         self.uniform_log('overall_val_loss', overall_val_loss)
         self.f1_macro.reset()
         self.f1_micro.reset()
+        self.valid_accuracy.reset()

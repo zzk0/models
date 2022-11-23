@@ -8,13 +8,13 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 from omegaconf import OmegaConf
 
 from model import TextCNN, TextRNN, TextRCNN, SpanEmo, BertCls
-from dataset import TextClassificationDataModule, ImdbDataset, SemEval18Dataset
+from dataset import TextClassificationDataModule, ImdbDataset, SemEval18Dataset, ImdbSpanEmoDataset
 from database import MLDatabase
 
 
 def parse_args(): 
     args = argparse.ArgumentParser()
-    args.add_argument('-c', '--cfg', type=str, default='./cfg/text_cnn_bert.yml')
+    args.add_argument('-c', '--cfg', type=str, default='./cfg/span_emo_imdb.yml')
     args.add_argument('-s', '--seed', type=int, default=42)
     args.add_argument('-m', '--mode', type=str, default='train')
     return args.parse_args()
@@ -75,9 +75,40 @@ def test_pytorch_inference(cfg, model):
         print('time cost: ', t1 - t0, y)
 
 
+def test_span_emo(cfg):
+    victim = SpanEmo(cfg)
+    model_path = '/home/percent1/models/nlp/text-classification/checkpoints/span_emo_english/epoch=3-step=428.ckpt'
+    victim = victim.load_from_checkpoint(checkpoint_path=model_path, cfg=cfg)
+    dataset = SemEval18Dataset(cfg, 'train')
+
+    def __victim_forward(input_):
+        batch = {
+            'input_ids': [],
+            'length': [],
+            'label_idxs': []
+        }
+        for text in input_:
+            input_id, input_length, label_idxs = dataset.process_input(text, None)
+            batch['input_ids'].append(input_id)
+            batch['length'].append(input_length)
+            batch['label_idxs'].append(label_idxs)
+        batch['input_ids'] = torch.Tensor(batch['input_ids']).long()
+        batch['length'] = torch.Tensor(batch['length']).long()
+        batch['label_idxs'] = torch.Tensor(batch['label_idxs']).long()
+        _, _, logits, y_pred, _ = victim(batch)
+        return logits, y_pred
+
+    input = ["Modern family never fails to cheer me up . Especially Phil .",
+             "Modern family never seems to cheer me up . Especially Phil ."]
+
+    print(__victim_forward(input))
+
+
 def main():
     args = parse_args()
     cfg = OmegaConf.load(args.cfg)
+
+    # test_span_emo(cfg)
 
     pl.seed_everything(args.seed, workers=True)
     if cfg.embedding.type not in ('bert'):
@@ -85,9 +116,13 @@ def main():
         imdb_dataset = ImdbDataset(cfg, 'train')
         cfg.vocab = imdb_dataset.vocab
         cfg.vocab_size = len(cfg.vocab)
-    if cfg.name.startswith('span_emo'):
+
+    if cfg.name.startswith('span_emo') and cfg.dataset.name == 'semeval18':
         semeval18_dataset = SemEval18Dataset(cfg, 'train')
         cfg.dataset.size = len(semeval18_dataset)
+    if cfg.name.startswith('span_emo') and cfg.dataset.name == 'imdb_span_emo':
+        # span_emo_imdb_dataset = ImdbSpanEmoDataset(cfg, 'train')
+        cfg.dataset.size = 25000
 
     # data
     data_module = TextClassificationDataModule(cfg)

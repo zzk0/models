@@ -4,6 +4,8 @@ from omegaconf.dictconfig import DictConfig
 
 from .imdb_dataset import ImdbDataset
 from .semeval18_dataset import SemEval18Dataset
+from .imdb_spanemo_dataset import ImdbSpanEmoDataset
+
 
 class TextClassificationDataModule(pl.LightningDataModule):
 
@@ -16,6 +18,8 @@ class TextClassificationDataModule(pl.LightningDataModule):
             return ImdbDataset
         elif self.cfg.dataset.name == 'semeval18':
             return SemEval18Dataset
+        elif self.cfg.dataset.name == 'imdb_span_emo':
+            return ImdbSpanEmoDataset
         raise NotImplemented
 
     def setup(self, stage: str):
