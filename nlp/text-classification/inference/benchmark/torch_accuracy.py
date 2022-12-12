@@ -42,7 +42,7 @@ if __name__ == '__main__':
     model = model.load_from_checkpoint(checkpoint_path='logs/text_cnn_bert/version_1/checkpoints/epoch=9-step=980.ckpt', cfg=cfg)
     model.to(device)
 
-    tokenizer_path = os.path.join('./pretrained/bert-base-cased/tokenizer.json')
+    tokenizer_path = os.path.join('/home/pretrained/bert-base-cased/tokenizer.json')
     tokenizer = Tokenizer.from_file(tokenizer_path)
     tokenizer.enable_truncation(max_length=128)
     tokenizer.enable_padding(length=128)

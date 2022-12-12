@@ -2,7 +2,7 @@ name: span_emo_spanish
 embedding:
   type: bert
   name: dccuchile/bert-base-spanish-wwm-uncased
-  path: ./pretrained/bert-base-spanish-wwm-uncased
+  path: /home/pretrained/bert-base-spanish-wwm-uncased
   dimension: 768
   use_local: true
 max_seq_len: 128

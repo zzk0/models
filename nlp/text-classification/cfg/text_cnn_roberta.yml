@@ -4,7 +4,7 @@ embedding:
   name: roberta-base
   dimension: 768
   use_local: true
-  path: ./pretrained/roberta-base
+  path: /home/pretrained/roberta-base
 max_seq_len: 128
 dataset:
   name: imdb

@@ -4,7 +4,7 @@ embedding:
   name: microsoft/deberta-v3-base
   dimension: 768
   use_local: true
-  path: ./pretrained/deberta-v3-base
+  path: /home/pretrained/deberta-v3-base
 max_seq_len: 128
 dataset:
   name: imdb

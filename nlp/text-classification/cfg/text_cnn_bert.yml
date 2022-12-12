@@ -4,7 +4,7 @@ embedding:
   name: bert-base-cased
   dimension: 768
   use_local: true
-  path: ./pretrained/bert-base-cased
+  path: /home/pretrained/bert-base-cased
 max_seq_len: 512
 dataset:
   name: imdb

@@ -4,7 +4,7 @@ embedding:
   name: bert-large-uncased
   dimension: 1024
   use_local: true
-  path: ./pretrained/bert-large-uncased
+  path: /home/pretrained/bert-large-uncased
 max_seq_len: 512
 dataset:
   name: imdb

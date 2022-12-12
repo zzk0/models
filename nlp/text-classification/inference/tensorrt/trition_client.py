@@ -9,7 +9,7 @@ device_to_service = {
     'gpu': ['text_cnn_bert_tensorrt', 'text_cnn_bert_pipeline'],
 }
 
-tokenizer = Tokenizer.from_file('./pretrained/bert-base-cased/tokenizer.json')
+tokenizer = Tokenizer.from_file('/home/pretrained/bert-base-cased/tokenizer.json')
 tokenizer.enable_truncation(max_length=128)
 tokenizer.enable_padding(length=128)
 
