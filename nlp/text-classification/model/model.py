@@ -11,7 +11,11 @@ class TextClassificationModel(pl.LightningModule):
         super().__init__()
         self.cfg = cfg
         self.model = None
-        self.valid_accuracy = torchmetrics.Accuracy()
+        num_classes = self.cfg.model.num_classes
+        if num_classes == 2:
+            self.valid_accuracy = torchmetrics.Accuracy(task='binary', num_classes=2)
+        else:
+            self.valid_accuracy = torchmetrics.Accuracy(task='multiclass', num_classes=num_classes)
 
     def hypermeters(self):
         parameters = ''

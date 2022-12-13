@@ -1,5 +1,5 @@
-# models="cnn rnn rcnn cnn_bert cnn_roberta cnn_deberta"
-models="cnn_roberta cnn_deberta"
+models="cnn rnn rcnn cnn_bert cnn_roberta cnn_deberta"
+# models="cnn_roberta cnn_deberta"
 for model in $models
 do
     file="./cfg/text_$model.yml"

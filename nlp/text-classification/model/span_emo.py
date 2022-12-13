@@ -77,7 +77,7 @@ class SpanEmo(pl.LightningModule):
         self.model = TorchSpanEmo(self.cfg)
         self.f1_macro = torchmetrics.classification.MultilabelF1Score(self.cfg.dataset.class_nums, average='macro')
         self.f1_micro = torchmetrics.classification.MultilabelF1Score(self.cfg.dataset.class_nums, average='micro')
-        self.valid_accuracy = torchmetrics.Accuracy()
+        self.valid_accuracy = torchmetrics.Accuracy(task='multilabel', num_labels=11)
 
     def hypermeters(self):
         parameters = ''

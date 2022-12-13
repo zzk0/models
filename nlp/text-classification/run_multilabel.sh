@@ -1,3 +1,5 @@
+export CUDA_VISIBLE_DEVICES=1 
+
 # english
 file=./cfg/span_emo_english.yml
 python3 main.py -c $file -s 23

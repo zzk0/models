@@ -13,13 +13,13 @@ dataset:
   class_nums: 11
 train:
   accelerator: gpu
-  accelerator_devices: 2
+  accelerator_devices: 1
   epochs: 20
   num_workers: 8
   train_batch_size: 32
   dev_batch_size: 32
   test_batch_size: 32
-  precision: 32  # 16
+  precision: 16  # 16
 optimizer:
   bert_lr: 2e-5  #  warning: a large learning rate will break the parameter of BERT
   ffn_lr: 0.001

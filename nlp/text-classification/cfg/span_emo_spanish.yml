@@ -13,7 +13,7 @@ dataset:
   class_nums: 11
 train:
   accelerator: gpu
-  accelerator_devices: 2
+  accelerator_devices: 1
   epochs: 20
   num_workers: 8
   train_batch_size: 32
