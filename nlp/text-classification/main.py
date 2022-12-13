@@ -104,10 +104,18 @@ def test_span_emo(cfg):
     print(__victim_forward(input))
 
 
+def load_cfg(path):
+    cfg = OmegaConf.load(path)
+
+    # set default value
+    cfg.train.accumulate_grad = cfg.get('train.accumulate_grad', 1)
+
+    return cfg
+
+
 def main():
     args = parse_args()
-    cfg = OmegaConf.load(args.cfg)
-
+    cfg = load_cfg(args.cfg)
     # test_span_emo(cfg)
 
     pl.seed_everything(args.seed, workers=True)
