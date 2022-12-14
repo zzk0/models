@@ -152,12 +152,14 @@ def main():
             callbacks=[
                 EarlyStopping(monitor="val_loss", patience=10, mode="min"),
                 checkpoint_callback
-            ]
+            ],
+            accumulate_grad_batches=cfg.train.accumulate_grad
         )
         trainer.fit(model, data_module)
         model = model.load_from_checkpoint(checkpoint_path=checkpoint_callback.best_model_path, cfg=cfg)
         trainer.test(model, data_module)
     else:
+        checkpoint_callback = ModelCheckpoint(dirpath=os.path.join("./checkpoints", cfg.name), save_top_k=1, monitor="val_acc")
         trainer = pl.Trainer(
             precision=cfg.train.precision,
             accelerator=cfg.train.accelerator,
@@ -168,7 +170,9 @@ def main():
             deterministic=True,
             callbacks=[
                 EarlyStopping(monitor="val_loss", patience=10, mode="min"),
-            ]
+                checkpoint_callback
+            ],
+            accumulate_grad_batches=cfg.train.accumulate_grad
         )
         trainer.fit(model, data_module)
     write_sqlite(cfg, model.hypermeters() + ', seed=' + str(args.seed), trainer.callback_metrics)
